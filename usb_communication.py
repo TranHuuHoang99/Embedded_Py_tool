@@ -1,22 +1,21 @@
-import usb
+import usb.core
+import time
 
 VENDOR_ID = 0x0483
 PRODUCT_ID = 0x3748
 
-reader = None
-buses = usb.busses()
-for bus in buses:
-    for device in bus.devices:
-        if device.idVendor == VENDOR_ID and device.idProduct == PRODUCT_ID:
-            reader = device
+devices = usb.core.find(find_all=True)
+_dev = None
 
-if not reader:
-    print("Device not found.")
-    exit(0)
+for dev in devices:
+    if dev.idVendor == VENDOR_ID and dev.idProduct == PRODUCT_ID:
+        _dev = dev
 
-print("Device connected.")
+print(_dev)
+        
+cmd = [0xf7]
+cmd += [0] * (16 - len(cmd))
+_dev.write(0x02, cmd, 200)
+data = _dev.read(0x81, 0x40).tolist()
+print(data)
 
-readerHandler = reader.open()
-readerHandler.bulkRead(0x81, 0x40, timeout=100)
-
-exit(1)
